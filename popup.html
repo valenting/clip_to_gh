@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clipboard to GitHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            width: 250px;
+        }
+        #status {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="userAndRepo">GitHub User/Repo:</label>
+        <input type="text" id="userAndRepo" placeholder="user/repository">
+    </div>
+    <div>
+        <label for="path">Path in Repo:</label>
+        <input type="text" id="path" placeholder="path/to/file">
+    </div>
+    <button id="uploadButton">Upload Clipboard to GitHub</button>
+    <div id="status"></div>
+    <script src="popup.js"></script>
+</body>
+</html>
