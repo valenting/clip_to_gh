@@ -44,13 +44,25 @@ function loadTargets() {
   });
 }
 
+function formatPath(path) {
+  // Remove the leading '/' if it exists
+  if (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+
+  // If the path is not empty and doesn't end with a '/', add one
+  if (path && !path.endsWith('/')) {
+    path += '/';
+  }
+
+  return path;
+}
+
 // Function to handle the upload action
 function uploadToTarget(target) {
   navigator.clipboard.readText().then(clipboardContent => {
-    let path = target.path;
-    if (!path) {
-        path = `${(new Date()).toISOString()}.md`;
-    }
+    let path = formatPath(target.path);
+    path = `${path}${(new Date()).toISOString()}.md`;
     let githubApiUrl = `https://api.github.com/repos/${target.github_user_repo}/contents/${path}`;
     let base64Content = btoa(clipboardContent);
     let message = "File uploaded from Clipboard";
