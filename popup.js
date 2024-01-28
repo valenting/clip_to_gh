@@ -1,55 +1,169 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadButton = document.getElementById('uploadButton');
-    const userAndRepoInput = document.getElementById('userAndRepo');
-    const pathInput = document.getElementById('path');
-    const statusDiv = document.getElementById('status');
+// DOM elements
+const targetListElement = document.getElementById('target-list');
+const listPanelElement = document.getElementById('list-panel');
+const addNewButton = document.getElementById('add-new');
+const newTargetForm = document.getElementById('new-target-form');
+const githubUserRepoInput = document.getElementById('github-user-repo');
+const githubPathInput = document.getElementById('github-path');
+const githubTokenInput = document.getElementById('github-token');
+const openAfterCheckbox = document.getElementById('open-after');
+const saveTargetButton = document.getElementById('save-target');
+const deleteTargetButton = document.getElementById('delete-target');
+let targetElement = null;
 
-    // Function to update the status message in the popup
-    function updateStatus(message) {
-        statusDiv.textContent = message;
+// Load existing targets from localStorage
+let targets = JSON.parse(localStorage.getItem('targets')) || [];
+
+// Function to save targets to localStorage
+function saveTargets() {
+  localStorage.setItem('targets', JSON.stringify(targets));
+}
+
+// Function to create a list item for a target
+function createListItem(target, index) {
+  const listItem = document.createElement('li');
+  
+  const uploadButton = document.createElement('button');
+  uploadButton.textContent = `⇪ ${target.github_user_repo} - ${target.path}`;
+  uploadButton.onclick = () => uploadToTarget(target);
+  listItem.appendChild(uploadButton);
+
+  const editButton = document.createElement('button');
+  editButton.textContent = 'Edit';
+  editButton.onclick = () => editTarget(index);
+  listItem.appendChild(editButton);
+
+  return listItem;
+}
+
+// Function to load and display targets
+function loadTargets() {
+  targetListElement.innerHTML = ''; // Clear existing list
+  targets.forEach((target, index) => {
+    targetListElement.appendChild(createListItem(target, index));
+  });
+}
+
+// Function to handle the upload action
+function uploadToTarget(target) {
+  navigator.clipboard.readText().then(clipboardContent => {
+    let path = target.path;
+    if (!path) {
+        path = `${(new Date()).toISOString()}.md`;
     }
+    let githubApiUrl = `https://api.github.com/repos/${target.github_user_repo}/contents/${path}`;
+    let base64Content = btoa(clipboardContent);
+    let message = "File uploaded from Clipboard";
+    let data = {
+      message: message,
+      content: base64Content
+    };
 
-    // Function to save the userAndRepo and path to local storage
-    function saveOptions(userAndRepo, path) {
-        browser.storage.local.set({ userAndRepo, path });
-    }
+    fetch(githubApiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + target.token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => {
+      console.log(data);
 
-    // Function to restore the userAndRepo and path from local storage
-    function restoreOptions() {
-        browser.storage.local.get(['userAndRepo', 'path'], function(items) {
-            if (items.userAndRepo) {
-                userAndRepoInput.value = items.userAndRepo;
-            }
-            if (items.path) {
-                pathInput.value = items.path;
-            }
-        });
-    }
+      if (target.openAfter) {        
+          let link = data?.content?._links?.html;
+          browser.tabs.create({
+            url: link
+          });
+      }
 
-    // Restore options when the popup is loaded
-    restoreOptions();
-
-    // Add click event listener to the upload button
-    uploadButton.addEventListener('click', function() {
-        const userAndRepo = userAndRepoInput.value.trim();
-        const path = pathInput.value.trim();
-
-        if (userAndRepo === '') {
-            updateStatus('Please enter a valid user/repo and path.');
-            return;
-        }
-
-        updateStatus('Uploading...');
-
-        // Save the userAndRepo and path
-        saveOptions(userAndRepo, path);
-
-        // Send a message to the background script to upload the clipboard content
-        browser.runtime.sendMessage({action: 'uploadToGitHub', userAndRepo, path}).then(response => {
-            updateStatus('Upload successful!');
-        }).catch(error => {
-            console.error('Error:', error);
-            updateStatus('Error: ' + error.message);
-        });
+      document.getElementById('status').textContent = 'Upload successful!';
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      document.getElementById('status').textContent = 'Upload failed.';
     });
+  }).catch(error => {
+    console.error('Error:', error);
+    document.getElementById('status').textContent = 'Failed to read clipboard.';
+  });
+}
+
+
+// Function to show the form for adding a new target
+addNewButton.addEventListener('click', function() {
+  listPanelElement.style.display = 'none';
+  deleteTargetButton.style.display = 'none';
+  newTargetForm.style.display = 'block';
 });
+
+// Function to save a new or updated target
+saveTargetButton.addEventListener('click', function() {
+  const githubUserRepo = githubUserRepoInput.value.trim();
+  const githubPath = githubPathInput.value.trim();
+  const githubToken = githubTokenInput.value.trim();
+  const openAfter = openAfterCheckbox.checked;
+
+  if (githubUserRepo && githubToken) {
+    if (!targetElement) {
+        targetElement = {};
+        targets.push(targetElement);
+    }
+    targetElement.github_user_repo = githubUserRepo;
+    targetElement.path = githubPath;
+    targetElement.token = githubToken;
+    targetElement.openAfter = openAfter;
+    targetElement = null;
+
+    saveTargets();
+    closeEditPanel();
+  } else {
+    document.getElementById('status').textContent = 'Please fill in all fields.';
+  }
+});
+
+function closeEditPanel() {
+    loadTargets();
+    newTargetForm.style.display = 'none';
+    githubUserRepoInput.value = '';
+    githubPathInput.value = '';
+    githubTokenInput.value = '';
+    listPanelElement.style.display = 'block';
+    deleteTargetButton.style.display = 'block';
+}
+
+deleteTargetButton.addEventListener('click', function() {
+    if (!targetElement) {
+        return;
+    }
+    deleteTarget(targets.indexOf(targetElement));
+});
+
+// Function to edit an existing target
+function editTarget(index) {
+  const target = targets[index];
+  githubUserRepoInput.value = target.github_user_repo;
+  githubPathInput.value = target.path;
+  githubTokenInput.value = target.token;
+  openAfterCheckbox.checked = target.openAfter;
+  newTargetForm.style.display = 'block';
+  listPanelElement.style.display = 'none';
+  targetElement = targets[index];
+}
+
+// Function to delete a target
+function deleteTarget(index) {
+  targets.splice(index, 1);
+  saveTargets();
+  closeEditPanel();
+}
+
+// Initial load of targets
+loadTargets();

@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Clipboard to GitHub</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
-            width: 250px;
-        }
-        #status {
-            margin-top: 10px;
-        }
-    </style>
+    <meta charset="utf-8">
+    <title>Upload to GitHub</title>
+    <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 <body>
-    <div>
-        <label for="userAndRepo">GitHub User/Repo:</label>
-        <input type="text" id="userAndRepo" placeholder="user/repository">
+    <h3>Upload clipboard to Github</h3>
+    <div id="list-panel">
+        <ul id="target-list">
+            <!-- List items will be populated here by popup.js -->
+        </ul>
+        <button id="add-new">Add New Target</button>
     </div>
-    <div>
-        <label for="path">Path in Repo:</label>
-        <input type="text" id="path" placeholder="path/to/file">
+    <div id="new-target-form" style="display:none;">
+        <div>
+            <input type="text" id="github-user-repo" placeholder="GitHub User/Repo">
+            <input type="text" id="github-path" placeholder="Repository Path">
+            <input type="password" id="github-token" placeholder="GitHub Token">
+        </div>
+        <input type="checkbox" id="open-after" />
+        <label for="open-after">Open page after upload</label>
+        <div>
+            <button id="save-target">Save Target</button>
+            <button id="delete-target">Delete</button>
+        </div>
     </div>
-    <button id="uploadButton">Upload Clipboard to GitHub</button>
-    <div id="status"></div>
     <script src="popup.js"></script>
+    <div id="status"></div>
 </body>
 </html>
