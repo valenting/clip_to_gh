@@ -58,13 +58,25 @@ function formatPath(path) {
   return path;
 }
 
+function bytesToBase64(bytes) {
+  const binString = String.fromCodePoint(...bytes);
+  return btoa(binString);
+}
+
+// https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem
+function unicodeStringTob64(string) {
+  let bytes = new TextEncoder().encode(string);
+  const binString = String.fromCodePoint(...bytes);
+  return btoa(binString);
+}
+
 // Function to handle the upload action
 function uploadToTarget(target) {
   navigator.clipboard.readText().then(clipboardContent => {
     let path = formatPath(target.path);
     path = `${path}${(new Date()).toISOString()}.md`;
     let githubApiUrl = `https://api.github.com/repos/${target.github_user_repo}/contents/${path}`;
-    let base64Content = btoa(clipboardContent);
+    let base64Content = unicodeStringTob64(clipboardContent);
     let message = "File uploaded from Clipboard";
     let data = {
       message: message,
