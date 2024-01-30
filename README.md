@@ -29,7 +29,7 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/m
 This is a personal project that may or may not end up getting maintained for long. However, there are some features I think may be useful.
 
 - [x] Upload clipboard to GitHub.
-- [ ] Convert rich text / HTML to markdown before uploading.
+- [x] Convert rich text / HTML to markdown before uploading (only works on Firefox Nightly)
 - [ ] Right click option to upload selection to GitHub without copying to clipboard.
 - [ ] Option to edit contents before upload to GitHub.
 - [ ] Better naming scheme for files. Provide a pattern that is filled in.
