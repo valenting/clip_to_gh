@@ -84,20 +84,21 @@ function uploadToTarget(target) {
 
   getClipboard().then(async clipboardContent => {
     console.log("clipping");
+    let content = "";
     if (typeof clipboardContent != "string") {
       if (clipboardContent[0].types.includes("text/html")) {  
         let blob = await clipboardContent[0].getType("text/html");
-        clipboardContent = await blob.text();
+        content = await blob.text();
+        content = turndownService.turndown(content);
       } else {
         let blob = await clipboardContent[0].getType("text/plain");
-        clipboardContent = await blob.text();
+        content = await blob.text();
       }
     }
-    let markdown = turndownService.turndown(clipboardContent)
     let path = formatPath(target.path);
     path = `${path}${(new Date()).toISOString()}.md`;
     let githubApiUrl = `https://api.github.com/repos/${target.github_user_repo}/contents/${path}`;
-    let base64Content = unicodeStringTob64(markdown);
+    let base64Content = unicodeStringTob64(content);
     let message = "File uploaded from Clipboard";
     let data = {
       message: message,
