@@ -11,7 +11,31 @@ const saveTargetButton = document.getElementById('save-target');
 const deleteTargetButton = document.getElementById('delete-target');
 let targetElement = null;
 
-const turndownService = new TurndownService();
+const turndownService = new TurndownService({headingStyle: "atx", bulletListMarker: "-"});
+// Github flavored markdown
+turndownService.use(turndownPluginGfm.gfm);
+
+// Original handler of li element.
+let originalLi = turndownService.rules.array.filter((e) => e.filter == "li")[0];
+// Make sure nested lists are properly indented
+turndownService.addRule("indent-list", {
+  filter: ["li"],
+  replacement: function (content, node, options) {
+    let indentLevel = 0;
+    let parent = node.parentNode;
+    while (parent) {
+      if (parent.nodeName === 'OL' || parent.nodeName === 'LI' || parent.nodeName === 'UL') {
+        indentLevel = indentLevel + 1;
+      }
+      parent = parent.parentNode;
+    }
+    if (indentLevel > 0) {
+      indentLevel = indentLevel - 1;
+    }
+    let indentation = "    ".repeat(indentLevel);
+    return indentation + originalLi.replacement(content, node, options);
+  }
+});
 
 // Load existing targets from localStorage
 let targets = JSON.parse(localStorage.getItem('targets')) || [];
