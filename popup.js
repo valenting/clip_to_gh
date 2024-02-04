@@ -12,8 +12,6 @@ const deleteTargetButton = document.getElementById('delete-target');
 let targetElement = null;
 
 const turndownService = new TurndownService({headingStyle: "atx", bulletListMarker: "-"});
-// Github flavored markdown
-turndownService.use(turndownPluginGfm.gfm);
 
 // Original handler of li element.
 let originalLi = turndownService.rules.array.filter((e) => e.filter == "li")[0];
