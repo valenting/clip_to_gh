@@ -23,6 +23,34 @@ You can either generate a general github token with the `repo` scope at [this li
 See the Github documentation page for more info:
 https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 
+## Repository path
+
+This is the path in the repo where the file with the contents of your clipboard will be placed.
+It can be an empty string, in which case your file will be placed in the root of your repo.
+
+| Repository path string | End result                             | Explanation                                                                                 |
+| ---------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| (empty string)         | 2024-02-04T17:14:11.626Z.md            | The file name is (new Date()).toISOString()}.md                                             |
+| folder/sub             | folder/sub/2024-02-04T17:14:11.626Z.md | The date is put in specified folder                                                         |
+| folder/sub/            | folder/sub/2024-02-04T17:14:11.626Z.md | Also treated as a folder because it ends in /                                                                                             |
+| /folder/sub            | folder/sub/2024-02-04T17:14:11.626Z.md | Leading / is removed                                                                        |
+| folder/%YYYY/          | folder/2024/clipboard.md               | YYYY is replaced with current year. Since it's a folder, a clipboard.md file name is added. |
+| folder/%YYYY           | folder/2024.md                         | Doesn't end in /, so it's treated as a file name. .md is added.                             |
+| folder/notes-%YYYY-%MM-%DD.md                       | folder/notes-2024-02-04.md                                       | Patterns are replaced. Already ends in .md so not suffix is added.                                                                                            |
+
+### Replacement patterns
+
+| Pattern | Replacement | Explanation |
+| ------- | ----------- | ----------- |
+| %YYYY   | 2024        | Year        |
+| %MM     | 02          | Month       |
+| %DD     | 04          | Day         |
+| %HH     | 17          | Hour        |
+| %mm     | 14          | Minutes     |
+| %ss     | 11          | Seconds     |
+| %sss        | 626            | Milliseconds            |
+
+
 
 ## Roadmap
 
@@ -32,7 +60,7 @@ This is a personal project that may or may not end up getting maintained for lon
 - [x] Convert rich text / HTML to markdown before uploading (only works on Firefox Nightly)
 - [ ] Right click option to upload selection to GitHub without copying to clipboard.
 - [ ] Option to edit contents before upload to GitHub.
-- [ ] Better naming scheme for files. Provide a pattern that is filled in.
+- [x] Better naming scheme for files. Provide a pattern that is filled in.
 - [ ] Add ability to overwrite existing files.
 
 

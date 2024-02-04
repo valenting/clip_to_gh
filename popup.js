@@ -35,6 +35,15 @@ turndownService.addRule("indent-list", {
   }
 });
 
+String.prototype.format = function() {
+    let formatted = this;
+    let replacements = arguments[0] || {};
+    for (var arg in replacements) {
+        formatted = formatted.replaceAll("%" + arg, replacements[arg]);
+    }
+    return formatted;
+};
+
 // Load existing targets from localStorage
 let targets = JSON.parse(localStorage.getItem('targets')) || [];
 
@@ -69,15 +78,40 @@ function loadTargets() {
 }
 
 function formatPath(path) {
+  let date = new Date();
+  let replacements = {
+    "YYYY": date.getFullYear().toString(),
+    "MM": (date.getMonth() + 1).toString().padStart(2, "0"),
+    "DD": date.getDate().toString().padStart(2, "0"),
+    "HH": date.getHours().toString().padStart(2, "0"),
+    "mm": date.getMinutes().toString().padStart(2, "0"),
+    "ss": date.getSeconds().toString().padStart(2, "0"),
+    "sss": date.getMilliseconds().toString().padStart(3, "0"),
+  };
+
   // Remove the leading '/' if it exists
   if (path.startsWith('/')) {
     path = path.substring(1);
   }
 
-  // If the path is not empty and doesn't end with a '/', add one
-  if (path && !path.endsWith('/')) {
-    path += '/';
-  }
+  let formattedPath = path.format(replacements);
+    if (path == formattedPath) {
+      // No format - append the date.
+      if (path && !path.endsWith('/')) {
+        // If the path is not empty and doesn't end with a '/', add one
+        path += '/';
+      }
+
+      path = `${path}${(new Date()).toISOString()}.md`;
+    } else {
+      // Already formatted, use that.
+      path = formattedPath;
+      if (path.endsWith('/')) {
+        path = path + "clipboard.md";
+      } if (!path.endsWith(".md")) {
+        path = path + ".md";
+      }
+    }
 
   return path;
 }
@@ -117,8 +151,9 @@ function uploadToTarget(target) {
         content = await blob.text();
       }
     }
+
     let path = formatPath(target.path);
-    path = `${path}${(new Date()).toISOString()}.md`;
+    
     let githubApiUrl = `https://api.github.com/repos/${target.github_user_repo}/contents/${path}`;
     let base64Content = unicodeStringTob64(content);
     let message = "File uploaded from Clipboard";
