@@ -140,7 +140,7 @@ function uploadToTarget(target) {
 
   getClipboard().then(async clipboardContent => {
     console.log("clipping");
-    let content = "";
+    let content = clipboardContent;
     if (typeof clipboardContent != "string") {
       if (clipboardContent[0].types.includes("text/html")) {  
         let blob = await clipboardContent[0].getType("text/html");
