@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Clip to GitHub",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Upload clipboard contents to GitHub",
   "permissions": [
     "storage",
